@@ -7,9 +7,13 @@ import com.jane.reactive.ws.users.presentation.UserRest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,6 +32,17 @@ public class UserServiceImpl implements UserService {
                 .mapNotNull(this::convertToUserEntity)
                 .flatMap(userRepository::save)
                 .map(this::convertToUserRest);
+
+//        // not used because exceptions handled globally
+//                .onErrorMap(exception -> {
+//                    if(exception instanceof DuplicateKeyException){
+//                        return new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
+//                    }else if(exception instanceof DataIntegrityViolationException){
+//                        return new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+//                    }else {
+//                        return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+//                    }
+//                } )
     }
 
     @Override
