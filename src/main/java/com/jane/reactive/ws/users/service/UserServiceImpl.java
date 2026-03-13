@@ -11,11 +11,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 
 import java.util.UUID;
@@ -25,11 +28,12 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Mono<UserRest> createUser(Mono<CreateUserRequest> createUserRequest) {
         return createUserRequest
-                .mapNotNull(this::convertToUserEntity)
+                .flatMap(this::convertToUserEntity)
                 .flatMap(userRepository::save)
                 .map(this::convertToUserRest);
 
@@ -60,11 +64,14 @@ public class UserServiceImpl implements UserService {
                 .map(userEntity -> convertToUserRest(userEntity));
     }
 
-    private UserEntity convertToUserEntity(CreateUserRequest createUserRequest) {
-        UserEntity user = new UserEntity();
-        BeanUtils.copyProperties(createUserRequest, user);
+    private Mono<UserEntity> convertToUserEntity(CreateUserRequest createUserRequest) {
+        return Mono.fromCallable(() -> {
+            UserEntity user = new UserEntity();
+            BeanUtils.copyProperties(createUserRequest, user);
+            user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
+            return user;
+        }).subscribeOn(Schedulers.boundedElastic());
 
-        return user;
     }
 
     private UserRest convertToUserRest(UserEntity userEntity) {
