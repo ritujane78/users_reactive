@@ -1,4 +1,4 @@
-package com.jane.reactive.ws.users.presentation;
+package com.jane.reactive.ws.users.presentation.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
