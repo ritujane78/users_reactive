@@ -1,5 +1,6 @@
 package com.jane.reactive.ws.users.service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,28 @@ public class JwtServiceImpl implements JwtService   {
                 .signWith(getSigningKey())
                 .compact();
     }
+
+    @Override
+    public Mono<Boolean> validateJwt(String jwt) {
+        return Mono.just(jwt)
+                .map(this::parseToken)
+                .map(claims -> !claims.getExpiration().before(new Date()))
+                .onErrorReturn(false);
+    }
+
+    @Override
+    public String extractTokenSubject(String token) {
+        return parseToken(token).getSubject();
+    }
+
+    private Claims parseToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
     private SecretKey getSigningKey() {
         return Optional.ofNullable(environment.getProperty("token.secret"))
                 .map(tokenSecret -> tokenSecret.getBytes())
