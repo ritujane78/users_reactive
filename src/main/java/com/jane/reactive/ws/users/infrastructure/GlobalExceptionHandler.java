@@ -4,12 +4,14 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,5 +41,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public Mono<ErrorResponse> handleBadCredentials(Exception ex) {
         return Mono.just(ErrorResponse.builder(ex, HttpStatus.UNAUTHORIZED, ex.getMessage()).build());
+    }
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public Mono<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        return Mono.just(ErrorResponse.builder(ex, HttpStatus.FORBIDDEN, ex.getMessage()).build());
     }
 }
