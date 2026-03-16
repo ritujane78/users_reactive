@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
 
@@ -27,13 +28,15 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Sinks.Many<UserRest> userSink;
 
     @Override
     public Mono<UserRest> createUser(Mono<CreateUserRequest> createUserRequest) {
         return createUserRequest
                 .flatMap(this::convertToUserEntity)
                 .flatMap(userRepository::save)
-                .map(this::convertToUserRest);
+                .map(this::convertToUserRest)
+                .doOnSuccess(savedUser -> userSink.tryEmitNext(savedUser) );
 
 //        // not used because exceptions handled globally
 //                .onErrorMap(exception -> {
@@ -60,6 +63,13 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(page, limit);
         return userRepository.findAllBy(pageable)
                 .map(userEntity -> convertToUserRest(userEntity));
+    }
+
+    @Override
+    public Flux<UserRest> streamUser() {
+        return userSink.asFlux()
+                .publish()
+                .autoConnect(1);
     }
 
     private Mono<UserEntity> convertToUserEntity(CreateUserRequest createUserRequest) {
