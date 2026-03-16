@@ -37,8 +37,10 @@ public class UsersController {
     @GetMapping("/{userId}")
 //    @PreAuthorize("authentication.principal.equals(#userId.toString()) or hasRole('ROLE_ADMIN ')")
     @PostAuthorize("returnObject.body !=null and (returnObject.body.id.toString().equals(authentication.principal))")
-    public Mono<ResponseEntity<UserRest>> getUser(@PathVariable("userId") UUID userId) {
-        return userService.getUserById(userId)
+    public Mono<ResponseEntity<UserRest>> getUser(@PathVariable("userId") UUID userId,
+                                                  @RequestParam(value = "include", required = false)String include,
+                                                  @RequestHeader("Authorization") String jwt) {
+        return userService.getUserById(userId, include, jwt)
                 .mapNotNull(item -> ResponseEntity.status(HttpStatus.OK).body(item))
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }

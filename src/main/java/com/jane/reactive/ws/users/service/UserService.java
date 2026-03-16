@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface UserService extends ReactiveUserDetailsService {
     Mono<UserRest> createUser(Mono<CreateUserRequest> createUserRequest);
-    Mono<UserRest> getUserById(UUID id);
+    Mono<UserRest> getUserById(UUID id, String include, String jwt);
     Flux<UserRest> getAllUsers(int page, int limit);
     Flux<UserRest> streamUser();
 }
