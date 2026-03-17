@@ -31,17 +31,21 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final Sinks.Many<UserRest> userSink;
-
-    @Autowired
-    private WebClient webClient;
+    private final WebClient webClient;
 
     private Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, Sinks.Many<UserRest> userSink, WebClient webClient) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.userSink = userSink;
+        this.webClient = webClient;
+    }
 
     @Override
     public Mono<UserRest> createUser(Mono<CreateUserRequest> createUserRequest) {
