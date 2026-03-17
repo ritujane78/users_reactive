@@ -16,6 +16,7 @@ import java.util.UUID;
 @Table(name="users")
 public class UserEntity {
     @Id
+    @Column("id")
     private UUID id;
 
     @Column("first_name")

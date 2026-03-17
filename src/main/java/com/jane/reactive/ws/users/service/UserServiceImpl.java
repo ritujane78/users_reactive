@@ -101,6 +101,7 @@ public class UserServiceImpl implements UserService {
             UserEntity user = new UserEntity();
             BeanUtils.copyProperties(createUserRequest, user);
             user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
+            System.out.println(user.toString());
             return user;
         }).subscribeOn(Schedulers.boundedElastic());
 
